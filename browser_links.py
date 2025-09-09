@@ -82,9 +82,12 @@ def get_broucher_user_prompt():
                    f"broucher of a company, pickup the proper content to make a short broucher for a company and that should include about company, company culture, future projects, careers etc..."
                    f"make sure the output should be in Markdown format")
     model = genai.GenerativeModel(model_name='gemini-1.5-pro', system_instruction = system_instruction)
-    broucher_response = model.generate_content(user_prompt)
+    broucher_response = model.generate_content(user_prompt, stream=True)
 
-    # print(broucher_response.text)
+    for chunk in broucher_response:
+        print(chunk.text, end="", flush=True)
+
+    print(broucher_response.text)
 
     embedding_model = 'models/text-embedding-004'
     query_embedding = genai.embed_content(model=embedding_model, content=user_prompt, task_type='RETRIEVAL_DOCUMENT')[
