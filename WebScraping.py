@@ -1,7 +1,6 @@
-from http.client import responses
-
 from bs4 import BeautifulSoup
 import requests
+
 
 class Website:
     def __init__(self, url):
@@ -18,3 +17,12 @@ class Website:
         for link in self.links:
             get_links.append(link.get('href'))
         return get_links
+
+    def get_webpage_details(self):
+        get_webpage_title = self.soup.title.string
+        get_webpage_details = self.soup.body.get_text(separator="\n", strip=True)
+        return get_webpage_title, get_webpage_details
+
+
+website = Website('https://www.anthropic.com/')
+website.get_webpage_details()
