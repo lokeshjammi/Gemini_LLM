@@ -27,7 +27,9 @@ def chat_bot_execute():
             if file_path.strip():
                 uploaded_file = genai.upload_file(path=file_path)
                 prompt_list.append(uploaded_file)
-            response = chat.send_message(prompt_list, stream=True)
+            response = chat.send_message(prompt_list, stream=True, generation_config={
+                "temperature": 0.8,
+            })
             for chunk in response:
                 print(chunk.text, end="", flush=True)
         except Exception as e:
@@ -47,7 +49,6 @@ class PersonalTutor:
             print('API Key not found')
 
         genai.configure(api_key=api_key)
-
 
 personal_tutor = PersonalTutor()
 chat_bot_execute()
