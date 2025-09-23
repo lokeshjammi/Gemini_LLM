@@ -25,4 +25,5 @@ class Website:
 
 
 website = Website('https://www.anthropic.com/')
-website.get_webpage_details()
+response = website.get_webpage_details()
+print(response)
