@@ -47,4 +47,4 @@ view = gr.Interface(
 )
 
 if __name__ == '__main__':
-    view.launch(share=True)
+    view.launch()
