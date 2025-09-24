@@ -24,6 +24,6 @@ class Website:
         return get_webpage_title, get_webpage_details
 
 
-website = Website('https://www.anthropic.com/')
-response = website.get_webpage_details()
-print(response)
+# website = Website('https://www.anthropic.com/')
+# response = website.get_webpage_details()
+# print(response)
