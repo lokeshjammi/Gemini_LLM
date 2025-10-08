@@ -12,8 +12,11 @@ if api_key:
 else:
     print('API Key not found')
 
-def get_ticket_prices(destination_city):
+def get_ticket_prices(destination_city: str):
 
+    """
+    This method helps to know the ticket prices based on the destination city.
+    """
     ticket_prices = {
         "chennai": 100,
         "bangalore": 500,
@@ -53,13 +56,29 @@ def airlines_ai(query):
     model = genai.GenerativeModel(model_name='gemini-2.5-flash', system_instruction=system_instruction, tools=[get_ticket_prices])
     response =  model.generate_content(query)
     if response.candidates[0].content.parts[0].function_call:
-        pass
+        function_call = response.candidates[0].content.parts[0].function_call
+        tool_name = function_call.name
+        tool_args = function_call.args
+        print(f"Agent want's to use tool called {tool_name}")
+        if tool_name == 'get_ticket_prices':
+            tool_result = get_ticket_prices(**tool_args)
+        response = model.generate_content(genai.Part(function_response={
+            "name": tool_name,
+            "response": tool_result
+        }))
+        # response = model.generate_content(tool_result)
     else:
         final_response = ""
         for chunk in response:
             if chunk.text:
                 final_response += chunk.text
                 yield final_response
+
+    final_response = ""
+    for chunk in response:
+        if chunk.text:
+            final_response += chunk.text
+            yield final_response
     # try:
     #     pass
     # except Exception as e:
