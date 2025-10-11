@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 import gradio as gr
+from google.generativeai.types import PartType
 
 load_dotenv('.env')
 api_key = os.getenv('GEMINI_API_KEY')
@@ -54,39 +55,34 @@ def airlines_ai(query):
     system_instruction += "Any questions asked outside of travel, please respond that you don't have info about that query in a polite and friendly manner only."
     system_instruction += "You must respond only in markdown format only"
     model = genai.GenerativeModel(model_name='gemini-2.5-flash', system_instruction=system_instruction, tools=[get_ticket_prices])
-    response =  model.generate_content(query)
-    if response.candidates[0].content.parts[0].function_call:
-        function_call = response.candidates[0].content.parts[0].function_call
+    first_response =  model.generate_content(query)
+    if first_response.candidates[0].content.parts[0].function_call:
+        function_call = first_response.candidates[0].content.parts[0].function_call
         tool_name = function_call.name
         tool_args = function_call.args
         print(f"Agent want's to use tool called {tool_name}")
         if tool_name == 'get_ticket_prices':
             tool_result = get_ticket_prices(**tool_args)
-        response = model.generate_content(genai.Part(function_response={
-            "name": tool_name,
-            "response": tool_result
-        }))
-        # response = model.generate_content(tool_result)
+        conversation_history = [
+            {"role": "user", "parts": [{"text": query}]},
+            first_response.candidates[0].content,
+            {"function_response": {"name": tool_name, "response": {"price": tool_result}}}
+        ]
+        final_response = model.generate_content(conversation_history)
     else:
         final_response = ""
-        for chunk in response:
+        for chunk in first_response:
             if chunk.text:
                 final_response += chunk.text
                 yield final_response
 
-    final_response = ""
-    for chunk in response:
+    full_response = ""
+    for chunk in final_response:
         if chunk.text:
-            final_response += chunk.text
+            full_response += chunk.text
             yield final_response
-    # try:
-    #     pass
-    # except Exception as e:
-    #     print(e)
-    # for chunk in response:
-    #     print(chunk.text, end="", flush=True)
 
-# airlines_ai("What's the ticket fare cost to chennai?")
+
 view = gr.Interface(
     fn=airlines_ai,
     inputs = [gr.Textbox(label="You'r question here")],
