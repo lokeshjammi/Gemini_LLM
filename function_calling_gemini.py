@@ -15,7 +15,7 @@ system_instruction = "You're an travel advisor and you mostly answer for questio
 system_instruction += "When user asks for one way ticket fare you can call the required tool from tool declarations, otherwise if that is a general query, response"
 "should be given normally"
 def check_price_of_ticket(destination_city: str):
-    city = destination_city
+    city = destination_city.lower()
     ticket_fare = {
         "chennai": 1000,
         "bangalore": 1200,
@@ -42,17 +42,20 @@ ticket_calculator_function = {
 #configure the LLM Model with all required things
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 tools = types.Tool(function_declarations=[ticket_calculator_function])
-config = types.GenerateContentConfig(system_instruction=system_instruction)
+config = types.GenerateContentConfig(tools=[tools], system_instruction=system_instruction)
 
 #Send request with function declaration
 response = client.models.generate_content(model='gemini-2.5-flash', config=config, 
-                                          contents="How many ways I can reach chennai from Bangalore?")
+                                          contents="What's the ticket fare to Chennai")
 if response.candidates[0].content.parts[0].function_call:
     function_call = response.candidates[0].content.parts[0].function_call
     function_name = function_call.name
     function_args = function_call.args
     print(function_name)
     print(function_args)
+    if function_name == "check_price_of_ticket":
+        result = check_price_of_ticket(**function_args)
+        print(result)
 else:
     print(response.candidates[0].content.parts[0].text)
 
