@@ -17,7 +17,10 @@ system_instruction += "When user asks for one way ticket fare you can call the r
 def check_price_of_ticket(destination_city: str):
     city = destination_city.lower()
     ticket_fare = {
-        "chennai": 1000,
+        "chennai": {
+            "price": 1000,
+            "currency": "INR"
+        },
         "bangalore": 1200,
         "mumbai": 1500, 
     }
