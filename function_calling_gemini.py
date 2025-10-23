@@ -14,17 +14,29 @@ else:
 system_instruction = "You're an travel advisor and you only focus to answer for questions related to travel."
 system_instruction += "When user asks for one way ticket fare you can call the required tool from tool declarations, otherwise if that is a general query, response"
 "should be given normally and if the query is not related to tarvel, please respond like couldn't able to answer other than travelling related questions."
-def check_price_of_ticket(destination_city: str):
-    city = destination_city.lower()
+def check_price_of_ticket(destination_city: list[str]):
+    result = {}
     ticket_fare = {
         "chennai": {
             "price": 1000,
             "currency": "INR"
         },
-        "bangalore": 1200,
-        "mumbai": 1500, 
+        "bangalore": {
+            "price": 1200,
+            "currency": "INR"
+        },
+        "mumbai": {
+            "price": 1500,
+            "currency": "INR"
+        }
     }
-    return ticket_fare[city]
+    for city in destination_city:
+        city_lower = city.lower()
+        if city_lower in ticket_fare:
+            result[city_lower] = ticket_fare[city_lower]
+        else:
+            result[city_lower] = {"error": "The given city is not found in the database"}
+    return result
 
 #Define function declarations to the model
 ticket_calculator_function = {
@@ -34,8 +46,11 @@ ticket_calculator_function = {
         "type": "object",
         "properties": {
             "destination_city": {
-                "type": "string",
-                "description": "The city with you want to travel"
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The list of cities which user wants to know the ticket fare"
         }
     },
     "required": ["destination_city"]
@@ -44,7 +59,7 @@ ticket_calculator_function = {
 
 #configure the LLM Model with all required things
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-user_prompt = "What's the ticket fare to Chennai?"
+user_prompt = "Please give me ticket fare for Chennai, Bangalore seperately"
 tools = types.Tool(function_declarations=[ticket_calculator_function])
 config = types.GenerateContentConfig(tools=[tools], system_instruction=system_instruction)
 
@@ -54,13 +69,11 @@ response = client.models.generate_content(model='gemini-2.0-flash', config=confi
 
 if response.candidates[0].content.parts[0].function_call:
     function_call = response.candidates[0].content.parts[0].function_call
-    print(function_call)
     function_name = function_call.name
     function_args = function_call.args
-    print(function_name)
-    print(function_args)
     if function_name == "check_price_of_ticket":
         result = check_price_of_ticket(destination_city=function_args.get('destination_city'))
+        result_list = list(result.values())
         print(result)
     response = client.models.generate_content(
         model='gemini-2.0-flash',
