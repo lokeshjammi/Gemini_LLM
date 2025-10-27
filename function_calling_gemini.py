@@ -61,7 +61,7 @@ ticket_calculator_function = {
 
 #configure the LLM Model with all required things
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-user_prompt = "What's the ticket fare to Chennai and Dubai?"
+user_prompt = "What's the ticket fare to Chennai and Bangalore?"
 tools = types.Tool(function_declarations=[ticket_calculator_function])
 config = types.GenerateContentConfig(tools=[tools], system_instruction=system_instruction)
 
