@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import os
-import google.generativeai as genai
+from google import genai as genai
 import gradio as gr
 
 def stream_with_gemini_api(query):
