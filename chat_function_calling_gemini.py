@@ -2,7 +2,10 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 import os
-import gradio as gr
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 load_dotenv('.env')
 
@@ -46,7 +49,13 @@ def check_price_of_ticket(destination_city: list[str]):
 
 #Open Chrome browser using selenium
 def open_browser():
-    pass
+    brave_path = "/snap/bin/brave"
+    chrome_options = Options()
+    chrome_options.binary_location = brave_path
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get("https://www.google.com/travel/flights")
+    return True
 
 #Define function declarations to the model
 ticket_calculator_function = {
