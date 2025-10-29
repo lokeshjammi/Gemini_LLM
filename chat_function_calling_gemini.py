@@ -44,6 +44,10 @@ def check_price_of_ticket(destination_city: list[str]):
             result[city_lower] = {"error": "The given city is not found in the database"}
     return result
 
+#Open Chrome browser using selenium
+def open_browser():
+    pass
+
 #Define function declarations to the model
 ticket_calculator_function = {
     "name": "check_price_of_ticket",
