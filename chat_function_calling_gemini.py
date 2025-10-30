@@ -2,7 +2,10 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 import os
-import gradio as gr
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 load_dotenv('.env')
 
@@ -44,6 +47,27 @@ def check_price_of_ticket(destination_city: list[str]):
             result[city_lower] = {"error": "The given city is not found in the database"}
     return result
 
+#Open Chrome browser using selenium
+def open_browser():
+    brave_path = "/snap/bin/brave"
+    chrome_options = Options()
+    chrome_options.binary_location = brave_path
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-background-networking")
+    chrome_options.add_argument("--disable-background-timer-throttling")
+    chrome_options.add_argument("--disable-client-side-phishing-detection")
+    chrome_options.add_argument("--disable-default-apps")
+    chrome_options.add_argument("--start-maximized")
+    service = Service(ChromeDriverManager(driver_version="142.0.7444.60").install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get("https://www.google.com/travel/flights")
+    return driver
+
 #Define function declarations to the model
 ticket_calculator_function = {
     "name": "check_price_of_ticket",
@@ -62,7 +86,19 @@ ticket_calculator_function = {
     "required": ["destination_city"]
 }
 }
-tools = types.Tool(function_declarations=[ticket_calculator_function])
+
+#Define open browser function declaration to the model
+open_browser_function = {
+    "name": "open_browser",
+    "description": "This function opens the chrome browser and navigates to google flights and returns the driver object",
+    "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+    }
+}
+
+tools = types.Tool(function_declarations=[ticket_calculator_function, open_browser_function])
 config = types.GenerateContentConfig(
     system_instruction=system_instruction,
     tools=[tools]
@@ -78,7 +114,8 @@ while True:
     user_input = input("User: ")
     
     if user_input.lower() in ['exit', 'quit']:
-        print("Exiting the chat.")
+        response = model.send_message(f"If any of the tokens from user which resembles {user_input.lower()}, respond with a polite goodbye message and end the chat.")
+        print("\n"+"Gemini:", response.text)
         break
 
     response = model.send_message(user_input)
@@ -90,11 +127,15 @@ while True:
         if function_name == "check_price_of_ticket":
             result = check_price_of_ticket(**function_args)
             result_list = list(result.values())
-            print(result_list)
             for i in range(len(result_list)):
                 city = function_args.get('destination_city')[i]
                 result = result_list[i]
                 response = model.send_message(f"The ticket fare for {city} is {result}")
-                print(response.text)
+                print("\n"+"Gemini:", response.text)
+        elif function_name == "open_browser":
+            driver = open_browser()
+            response = model.send_message(f"The browser has been opened to Google Flights and responded with {driver}")
+            print("\n"+"Gemini:", response.text)
+            driver.close()
     else:
         print("\n"+"Gemini:", response.text)

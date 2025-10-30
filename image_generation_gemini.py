@@ -15,7 +15,8 @@ else:
 
 client = genai.Client(api_key=api_key)
 
-prompt = "Generate an image of a tollywood hero pawankalyan in a stylish pose with sunglasses."
+prompt = "Give me an healthy tiger prawn which grown by farmers in Andhra Pradesh, India that image should be highly detailed and realistic. and I want to use the " \
+"same image as reference to compare with real time prawn farming images to identify the healthy prawn in the farm. mention the idea weight of the prawn in the image. and current date price per KG on image."
 
 response = client.models.generate_content(
     model="gemini-2.5-flash-image",
