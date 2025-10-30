@@ -127,16 +127,15 @@ while True:
         if function_name == "check_price_of_ticket":
             result = check_price_of_ticket(**function_args)
             result_list = list(result.values())
-            print(result_list)
             for i in range(len(result_list)):
                 city = function_args.get('destination_city')[i]
                 result = result_list[i]
                 response = model.send_message(f"The ticket fare for {city} is {result}")
-                print(response.text)
+                print("\n"+"Gemini:", response.text)
         elif function_name == "open_browser":
             driver = open_browser()
             response = model.send_message(f"The browser has been opened to Google Flights and responded with {driver}")
-            print(response.text)
+            print("\n"+"Gemini:", response.text)
             driver.close()
     else:
         print("\n"+"Gemini:", response.text)
