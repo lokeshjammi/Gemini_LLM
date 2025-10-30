@@ -15,8 +15,8 @@ else:
 
 client = genai.Client(api_key=api_key)
 
-prompt = "Give me an healthy tiger prawn which grown by farmers in Andhra Pradesh, India that image should be highly detailed and realistic. and I want to use the " \
-"same image as reference to compare with real time prawn farming images to identify the healthy prawn in the farm. mention the idea weight of the prawn in the image. and current date price per KG on image."
+prompt = "Give me an tiger prawn which has some fungal infection that image should be highly detailed and realistic. and I want to use the " \
+"same image as reference to compare with real time prawn farming images to identify the healthy prawn in the farm."
 
 response = client.models.generate_content(
     model="gemini-2.5-flash-image",
@@ -29,3 +29,4 @@ for part in response.candidates[0].content.parts:
         image.show(
             title="Generated Image"
         )
+        image.save("generated_prawn_image.png")
