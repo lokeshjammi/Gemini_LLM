@@ -10,7 +10,6 @@ import gradio as gr
 import time
 
 load_dotenv('.env')
-
 api_key = os.getenv('GEMINI_API_KEY')
 
 if api_key:
@@ -112,6 +111,7 @@ def chat_with_gemini(query, history):
         model="gemini-2.0-flash",
         config=config
     )
+
     response = model.send_message(query)
     if response.candidates[0].content.parts[0].function_call:
         function_call = response.candidates[0].content.parts[0].function_call
@@ -124,17 +124,13 @@ def chat_with_gemini(query, history):
                 city = function_args.get('destination_city')[i]
                 result = result_list[i]
                 response = model.send_message(f"The ticket fare for {city} is {result}")
-                print("\n"+"Gemini:", response.text)
                 return response.text
         elif function_name == "open_browser":
             driver = open_browser()
             response = model.send_message(f"The browser has been opened to Google Flights and responded with {driver}")
-            print("\n"+"Gemini:", response.text)
             driver.close()
             return response.text
     else:
-        print("\n"+"Gemini:", response.text)
-        print(history)
         return response.text
     
 gr.ChatInterface(
