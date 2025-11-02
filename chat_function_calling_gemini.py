@@ -6,6 +6,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import gradio as gr
+import time
 
 load_dotenv('.env')
 
@@ -65,6 +67,7 @@ def open_browser():
     chrome_options.add_argument("--start-maximized")
     service = Service(ChromeDriverManager(driver_version="142.0.7444.60").install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
+    time.sleep(2)
     driver.get("https://www.google.com/travel/flights")
     return driver
 
@@ -104,22 +107,12 @@ config = types.GenerateContentConfig(
     tools=[tools]
 )
 
-model = client.chats.create(
-    model="gemini-2.0-flash",
-    history=[],
-    config=config
-)
-
-while True:
-    user_input = input("User: ")
-    
-    if user_input.lower() in ['exit', 'quit']:
-        response = model.send_message(f"If any of the tokens from user which resembles {user_input.lower()}, respond with a polite goodbye message and end the chat.")
-        print("\n"+"Gemini:", response.text)
-        break
-
-    response = model.send_message(user_input)
-
+def chat_with_gemini(query, history):
+    model = client.chats.create(
+        model="gemini-2.0-flash",
+        config=config
+    )
+    response = model.send_message(query)
     if response.candidates[0].content.parts[0].function_call:
         function_call = response.candidates[0].content.parts[0].function_call
         function_name = function_call.name
@@ -132,10 +125,22 @@ while True:
                 result = result_list[i]
                 response = model.send_message(f"The ticket fare for {city} is {result}")
                 print("\n"+"Gemini:", response.text)
+                return response.text
         elif function_name == "open_browser":
             driver = open_browser()
             response = model.send_message(f"The browser has been opened to Google Flights and responded with {driver}")
             print("\n"+"Gemini:", response.text)
             driver.close()
+            return response.text
     else:
         print("\n"+"Gemini:", response.text)
+        print(history)
+        return response.text
+    
+gr.ChatInterface(
+    fn = chat_with_gemini,
+    type = "messages",
+    title = "Travel Advisor Chatbot",
+    description = "Chat with a travel advisor bot that can provide ticket fares and open flight booking pages.",
+    theme = "default"
+).launch()
