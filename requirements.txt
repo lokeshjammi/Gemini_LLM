@@ -3,3 +3,4 @@ gradio
 google-genai
 selenium
 webdriver-manager
+openai
